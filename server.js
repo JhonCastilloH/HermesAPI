@@ -5,6 +5,7 @@ var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 
 var CONTACTS_COLLECTION = "contacts";
+var ACTUATORS_COLLECTION = "actuators";
 
 var app = express();
 app.use(express.static(__dirname + "/public"));
@@ -106,6 +107,43 @@ app.delete("/contacts/:id", function(req, res) {
       handleError(res, err.message, "Failed to delete contact");
     } else {
       res.status(204).end();
+    }
+  });
+});
+
+
+
+// ACTUATORS API ROUTES BELOW
+
+
+/*  "/actuators"
+ *    GET: finds all contacts
+ *    POST: creates a new contact
+ */
+
+app.get("/actuators", function(req, res) {
+  db.collection(ACTUATORS_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get actuators.");
+    } else {
+      res.status(200).json(docs);
+    }
+  });
+});
+
+app.post("/actuators", function(req, res) {
+  var newContact = req.body;
+  newContact.createDate = new Date();
+
+  if (!(req.body.name)) {
+    handleError(res, "Invalid user input", "Must provide a first or last name.", 400);
+  }
+
+  db.collection(ACTUATORS_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new actuator.");
+    } else {
+      res.status(201).json(doc.ops[0]);
     }
   });
 });
