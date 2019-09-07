@@ -6,6 +6,7 @@ var ObjectID = mongodb.ObjectID;
 
 var CONTACTS_COLLECTION = "contacts";
 var ACTUATORS_COLLECTION = "actuators";
+var SPACES_COLLECTION = "spaces";
 
 var app = express();
 app.use(express.static(__dirname + "/public"));
@@ -142,6 +143,41 @@ app.post("/actuators", function(req, res) {
   db.collection(ACTUATORS_COLLECTION).insertOne(newContact, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to create new actuator.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+});
+
+// SPACES API ROUTES BELOW
+
+
+/*  "/spaces"
+ *    GET: finds all spaces
+ *    POST: creates a new space
+ */
+
+app.get("/spaces", function(req, res) {
+  db.collection(SPACES_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get spaces.");
+    } else {
+      res.status(200).json(docs);
+    }
+  });
+});
+
+app.post("/spaces", function(req, res) {
+  var newContact = req.body;
+  newContact.createDate = new Date();
+
+  if (!(req.body.name)) {
+    handleError(res, "Invalid user input", "Must provide a first or last name.", 400);
+  }
+
+  db.collection(SPACES_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new space.");
     } else {
       res.status(201).json(doc.ops[0]);
     }
