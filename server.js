@@ -118,8 +118,9 @@ app.delete("/contacts/:id", function(req, res) {
 
 
 /*  "/actuators"
- *    GET: finds all contacts
- *    POST: creates a new contact
+ *    GET: finds all actuators
+ *    POST: creates a new actuator
+ *    PUT: update actuator by id
  */
 
 app.get("/actuators", function(req, res) {
@@ -149,13 +150,26 @@ app.post("/actuators", function(req, res) {
   });
 });
 
+app.put("/spaces/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc.id;
+
+  db.collection(ACTUATORS_COLLECTION).updateOne({id: { $eq: req.params.id}}, updateDoc, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to update actuator");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
 // SPACES API ROUTES BELOW
 
 
 /*  "/spaces"
  *    GET: finds all spaces
  *    POST: creates a new space
- *    PUT: update contact by id
+ *    PUT: update space by id
  */
 
 app.get("/spaces", function(req, res) {
