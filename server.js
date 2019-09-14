@@ -150,7 +150,7 @@ app.post("/actuators", function(req, res) {
   });
 });
 
-app.put("/spaces/:id", function(req, res) {
+app.put("/actuators/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc.id;
 
