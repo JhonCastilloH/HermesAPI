@@ -155,6 +155,7 @@ app.post("/actuators", function(req, res) {
 /*  "/spaces"
  *    GET: finds all spaces
  *    POST: creates a new space
+ *    PUT: update contact by id
  */
 
 app.get("/spaces", function(req, res) {
@@ -180,6 +181,19 @@ app.post("/spaces", function(req, res) {
       handleError(res, err.message, "Failed to create new space.");
     } else {
       res.status(201).json(doc.ops[0]);
+    }
+  });
+});
+
+app.put("/spaces/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(CONTACTS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to update contact");
+    } else {
+      res.status(204).end();
     }
   });
 });
