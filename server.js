@@ -152,7 +152,6 @@ app.post("/actuators", function(req, res) {
 
 app.put("/actuators/:id", function(req, res) {
   var updateDoc = req.body;
-  delete updateDoc.id;
 
   db.collection(ACTUATORS_COLLECTION).updateOne({id: { $eq: req.params.id}}, updateDoc, function(err, doc) {
     if (err) {
@@ -201,9 +200,8 @@ app.post("/spaces", function(req, res) {
 
 app.put("/spaces/:id", function(req, res) {
   var updateDoc = req.body;
-  delete updateDoc._id;
 
-  db.collection(SPACES_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
+  db.collection(SPACES_COLLECTION).updateOne({id: { $eq: req.params.id}}, updateDoc, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to update space");
     } else {
