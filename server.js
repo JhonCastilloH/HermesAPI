@@ -33,6 +33,13 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI, function(err, database) {
     });
 });
 
+
+// Generic error handler used by all endpoints.
+function handleError(res, reason, message, code) {
+    console.log("ERROR: " + reason);
+    res.status(code || 500).json({ "error": message });
+}
+
 // mount middlewares
 app.use(express.static('../www'));
 app.use(bodyParser.json());
@@ -42,13 +49,18 @@ app.use(function(req, res, next) {
         (req.url === '/contacts' && req.method === 'POST')) {
         next();
     } else if (!req.query.token) {
-        res.send(401, 'Token missing');
-    } else if (!db[req.query.token]) {
-        res.send(401, 'Invalid token');
+        handleError(res, err.message, "Token missing", 401);
     } else {
-        next();
+        db.collection('contacts').findOne({ _id: ObjectID.createFromHexString(req.query.token) },
+            (err, doc) => {
+                if (err) handleError(res, err.message, "Invalid request", 500);
+                else if (!doc) handleError(res, err.message, "Invalid token", 401);
+                else next();
+            });
     }
 });
+
+
 
 // SESSION API ROUTES BELOW
 
@@ -59,9 +71,9 @@ app.post('/sessions', function(req, res) {
         db.collection('contacts').findOne({ email: req.body.email, password: req.body.password },
             (err, doc) => {
                 //console.log('TOKEN: ' + doc._id.toHexString());
-                if (err) res.send(500);
-                else if (!doc) res.send(401);
-                else res.send({
+                if (err) handleError(res, err.message, "Invalid credentials", 500);
+                else if (!doc) handleError(res, err.message, "Invalid credentials", 401);
+                else res.status(200).send({
                     userId: doc._id.toHexString(),
                     token: doc._id.toHexString()
                 });
@@ -71,47 +83,47 @@ app.post('/sessions', function(req, res) {
 
 // CONTACTS API ROUTES BELOW
 
-// Generic error handler used by all endpoints.
-function handleError(res, reason, message, code) {
-    console.log("ERROR: " + reason);
-    res.status(code || 500).json({ "error": message });
-}
-
 /*  "/contacts"
  *    GET: finds all contacts
  *    POST: creates a new contact
  */
 
 app.get('/contacts', function(req, res) {
-  db.collection(CONTACTS_COLLECTION).find().toArray((err, docs) => {
-    if (err) handleError(res, err.message, "Failed to get contacts.");
-    else res.send(docs.map((doc) => {
-      var user = {
-        id: doc._id.toHexString(), email: doc.email, name: doc.name,
-        surname: doc.surname
-      };
-      res.status(200).json(user);
-    }));
-  });
+    db.collection(CONTACTS_COLLECTION).find().toArray((err, docs) => {
+        if (err) handleError(res, err.message, "Failed to get contacts.");
+        else res.status(200).send(docs.map((doc) => {
+            var user = {
+                id: doc._id.toHexString(),
+                email: doc.email,
+                name: doc.name,
+                surname: doc.surname
+            };
+            res.status(200).json(user);
+        }));
+    });
 });
 
 app.post('/contacts', function(req, res) {
-  if (!req.body.email || !req.body.password || !req.body.name ||
-    !req.body.surname)
-    handleError(res, "Invalid user input", "Must provide a first or last name.", 400);
-  else {
-    var user = {
-      email: req.body.email, password: req.body.password,
-      name: req.body.name, surname: req.body.surname
-    };
-    db.collection(CONTACTS_COLLECTION).insertOne(user, (err, result) => {
-      if (err) handleError(res, err.message, "Failed to create new contact.");
-      else res.status(201).json({
-        id: result.insertedId.toHexString(), name: user.name,
-        surname: user.surname, email: user.email
-      });
-    });
-  }
+    if (!req.body.email || !req.body.password || !req.body.name ||
+        !req.body.surname)
+        handleError(res, "Invalid user input", "Must provide a first or last name.", 400);
+    else {
+        var user = {
+            email: req.body.email,
+            password: req.body.password,
+            name: req.body.name,
+            surname: req.body.surname
+        };
+        db.collection(CONTACTS_COLLECTION).insertOne(user, (err, result) => {
+            if (err) handleError(res, err.message, "Failed to create new contact.");
+            else res.status(201).json({
+                id: result.insertedId.toHexString(),
+                name: user.name,
+                surname: user.surname,
+                email: user.email
+            });
+        });
+    }
 });
 
 
