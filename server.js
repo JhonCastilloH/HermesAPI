@@ -50,7 +50,7 @@ app.use(function(req, res, next) {
         (req.url === '/contacts' && req.method === 'POST')) {
         next();
     } else if (!req.query.token) {
-        handleError(res, ¨¨, "Token missing", 401);
+        handleError(res, "", "Token missing", 401);
     } else {
         db.collection('contacts').findOne({ _id: ObjectID.createFromHexString(req.query.token) },
             (err, doc) => {
