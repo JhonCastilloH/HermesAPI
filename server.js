@@ -50,7 +50,7 @@ app.use(function(req, res, next) {
         (req.url === '/contacts' && req.method === 'POST')) {
         next();
     } else if (!req.query.token) {
-        handleError(res, err.message, "Token missing", 401);
+        handleError(res, ¨¨, "Token missing", 401);
     } else {
         db.collection('contacts').findOne({ _id: ObjectID.createFromHexString(req.query.token) },
             (err, doc) => {
@@ -73,7 +73,7 @@ app.post('/sessions', function(req, res) {
             (err, doc) => {
                 //console.log('TOKEN: ' + doc._id.toHexString());
                 if (err) handleError(res, err.message, "Invalid credentials", 500);
-                else if (!doc) handleError(res, err.message, "Invalid credentials", 401);
+                else if (!doc) handleError(res, "", "An error on sessions", 401);
                 else res.status(200).send({
                     userId: doc._id.toHexString(),
                     token: doc._id.toHexString()
