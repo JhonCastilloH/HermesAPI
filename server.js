@@ -45,7 +45,8 @@ app.use(express.static('../www'));
 app.use(bodyParser.json());
 app.use(function(req, res, next) {
     console.log(req.method + ':' + req.url);
-    if ((req.url === '/spaces') || (req.url === '/actuators') || (req.url === '/sessions') ||
+    if ((req.url === '/spaces'  && req.method === 'GET') || 
+        (req.url === '/actuators' && req.method === 'GET') || (req.url === '/sessions') ||
         (req.url === '/contacts' && req.method === 'POST')) {
         next();
     } else if (!req.query.token) {
